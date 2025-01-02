@@ -1,5 +1,7 @@
-mne
-numpy
+streamlit
 tensorflow
+numpy
+pandas
+mne
 matplotlib
 scikit-learn
