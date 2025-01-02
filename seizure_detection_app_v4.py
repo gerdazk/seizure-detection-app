@@ -88,7 +88,7 @@ def analyze_eeg(file_path):
     optimal_threshold = thresholds[optimal_idx]
     print(f"Optimal Threshold: {optimal_threshold}")
 
-    seizure_indices = np.where(smoothed_predictions >= 0.92)[0]
+    seizure_indices = np.where(smoothed_predictions >= 0.5)[0]
     print(f"Seizure Indices: {seizure_indices}")
 
     sfreq = raw.info['sfreq']
