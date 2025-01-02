@@ -6,4 +6,4 @@ RUN pip install -r requirements.txt
 COPY . .
 
 EXPOSE 8501
-CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.enableCORS=false"]
+CMD ["streamlit", "run", "seizure_detection_app_v4.py", "--server.port=8501", "--server.enableCORS=false"]
