@@ -20,7 +20,17 @@ TARGET_CHANNELS = [
 
 @st.cache_resource
 def load_model():
-    return tf.keras.models.load_model("./models/seizure_detection_inceptionv3_11.h5")
+    from tensorflow.keras.models import load_model
+    import tensorflow.keras.layers as layers
+
+    def custom_batch_norm_from_config(config):
+        if isinstance(config['axis'], list):
+            config['axis'] = config['axis'][0]
+        return layers.BatchNormalization(**config)
+
+    layers.BatchNormalization.from_config = custom_batch_norm_from_config
+
+    return load_model("./models/seizure_detection_inceptionv3_11.h5")
 
 model = load_model()
 
