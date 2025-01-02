@@ -2,4 +2,4 @@ mne
 numpy
 tensorflow
 matplotlib
-sklearn
+scikit-learn
