@@ -67,29 +67,16 @@ def analyze_eeg(file_path):
         ).numpy()
         for epoch in epochs_data
     ])
-    print(f"Resized Data Shape: {resized_data.shape}")
-    print(f"Resized Data Min: {resized_data.min()}, Max: {resized_data.max()}, Mean: {resized_data.mean()}")
 
     scaled_data = (resized_data - resized_data.min()) / (resized_data.max() - resized_data.min()) * 255.0
-    print(f"Scaled Data Shape: {scaled_data.shape}")
-    print(f"Scaled Data Min: {scaled_data.min()}, Max: {scaled_data.max()}, Mean: {scaled_data.mean()}")
     normalized_data = preprocess_input(scaled_data)
-    print(f"Normalized Data Shape: {normalized_data.shape}")
-    print(f"Normalized Data Min: {normalized_data.min()}, Max: {normalized_data.max()}, Mean: {normalized_data.mean()}")
 
     predictions = model.predict(normalized_data).flatten()
-    print(f"Predictions: {predictions}")
 
     window_size = 5 
     smoothed_predictions = np.convolve(predictions, np.ones(window_size) / window_size, mode='same')
 
-    fpr, tpr, thresholds = roc_curve([0] * len(predictions), predictions)
-    optimal_idx = np.argmax(tpr - fpr)
-    optimal_threshold = thresholds[optimal_idx]
-    print(f"Optimal Threshold: {optimal_threshold}")
-
-    seizure_indices = np.where(smoothed_predictions >= 0.5)[0]
-    print(f"Seizure Indices: {seizure_indices}")
+    seizure_indices = np.where(smoothed_predictions >= 0.98)[0]
 
     sfreq = raw.info['sfreq']
     raw_start_time = raw.first_samp / sfreq
@@ -180,14 +167,19 @@ if "results" in st.session_state:
 
     st.subheader("EEG Visualization")
 
-    selected_epoch = st.selectbox("Select an epoch with detected seizures:",
-                                  options=seizure_indices,
-                                  format_func=lambda x: f"Epoch {x} ({x*3:.2f}s to {(x+1)*3:.2f}s)")
+    if seizure_indices.size > 0:
+        selected_epoch = st.selectbox(
+            "Select an epoch with detected seizures:",
+            options=seizure_indices,
+            format_func=lambda x: f"Epoch {x} ({x*3:.2f}s to {(x+1)*3:.2f}s)"
+        )
 
-    st.subheader("Selected Seizure Epoch")
-    fig = plot_eeg(raw, selected_epoch * 3, 3.0)
-    if fig:
-        st.pyplot(fig)
+        st.subheader("Selected Seizure Epoch")
+        fig = plot_eeg(raw, selected_epoch * 3, 3.0)
+        if fig:
+            st.pyplot(fig)
+    else:
+        st.warning("No seizures were detected in the uploaded EEG file.")
 
     st.write("Or use sliders to view any timeframe:")
     start_time = st.slider("Start Time (seconds)", 0, int(raw.times[-1]), 0, 1)
@@ -198,8 +190,8 @@ if "results" in st.session_state:
     if fig:
         st.pyplot(fig)
 
-    st.subheader("Seizure Probabilities by Epoch")
-    st.bar_chart(predictions)
+    # st.subheader("Seizure Probabilities by Epoch")
+    # st.bar_chart(predictions)
 
     st.subheader("Merged Seizure Timeframes")
     if seizure_timeframes:
